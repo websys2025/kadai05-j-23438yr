@@ -4,19 +4,37 @@
     <title>演習課題5-2：外部APIの呼び出しテスト</title>
 </head>
 <body>
-    <h1 id="msg">何かのAPI</h1>
-    <form name="apiform"><p>
-        何かのフォーム：<input type="text" name="form_data">
-        <button type="button" id="btn1" onclick="some_api(this.form)">実行</button>
-    </p></form>
-    
-    <div id="result"></div>
-    <script>
-        async function some_api(myForm) {
-            // ここにコードを書く
-            document.getElementById("result").innerHTML += myForm.form_data.value+"<br />";
-            document.apiform.reset();
-        }
-    </script>
+<h1 id="msg">天気予報API</h1>
+<h3>入力した町の天気を表示します。</h3>
+<p>IDの例： 千葉 120010  東京 130010 埼玉 110010 神奈川 140010 </p>
+<h3>他のIDはこちらからご確認ください。</h3>
+<a href= "https://weather.tsukumijima.net/primary_area.xml" >全国の地点定義表</a>
+<form name="apiform"><p>
+    cityIDを入力：<input type="text" name="form_data">
+    <button type="button" id="btn1" onclick="some_api(this.form)">実行</button>
+</p></form>
+<div id="result"></div>
+<script>
+    async function some_api(myForm) {
+        // ここにコードを書く
+        const endpoint = "https://weather.tsukumijima.net/api/forecast";//変数endpointにAPI呼び出しの基本urlを代入。
+        const cityID = myForm.form_data.value;//入力内容を変数cityIDへ代入。
+        const url = `${endpoint}?city=${cityID}`; //入力内容を変数urlへ代入し、apiを呼び出すためのurlを作る。
+        // API呼び出し
+        const response = await fetch(url); //作成したurlを使いAPI呼び出し
+        const data = await response.json(); //返答が来るまで待機
+        // 結果の表示
+        if (data.forecasts && data.forecasts.length > 0) { 
+            let forecastHtml = `<h3>${data.location.city} の天気予報</h3>`; //cityIDから取得できた場所の名前を大きく(h3で)表示する状態で forecastHtmlへ追加。
+            data.forecasts.forEach(forecast => { //データの個数分繰り返し。
+            forecastHtml += `<p>${forecast.date} - ${forecast.telop}</p>`; //日付(date)と天気(telop)を取得し表示する(<p>表示)状態で forcastHtmlへ追加。
+            });
+            document.getElementById("result").innerHTML = forecastHtml; //取得し記憶したデータをページ内に表示。
+        } else {
+            document.getElementById("result").innerHTML = "天気情報が見つかりませんでした。";
+        }//データが返ってきたなら表示し、データが返ってこなかった（null）だった場合は天気情報が見つからないことを伝える。
+        document.apiform.reset();
+    }
+</script>
 </body>
 </html>
